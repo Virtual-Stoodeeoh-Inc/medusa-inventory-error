@@ -9,6 +9,7 @@ env:
   ECR_REPOSITORY: tellihealth/medusajs
   ECS_SERVICE: tellihealth-medusajs
   ECS_CLUSTER: tellihealth-medusajs
+  ECS_TASK_DEFINITION: tellihealth-medusajs
   CONTAINER_NAME: tellihealth-medusajs
 
 permissions:
@@ -52,4 +53,5 @@ jobs:
         with:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
           wait-for-service-stability: true

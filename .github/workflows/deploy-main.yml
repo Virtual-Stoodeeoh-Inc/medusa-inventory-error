@@ -9,7 +9,6 @@ env:
   ECR_REPOSITORY: tellihealth/medusajs
   ECS_SERVICE: tellihealth-medusajs
   ECS_CLUSTER: tellihealth-medusajs
-  ECS_TASK_DEFINITION: tellihealth-medusajs
   CONTAINER_NAME: tellihealth-medusajs
 
 permissions:
@@ -53,5 +52,4 @@ jobs:
         with:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          image: ${{ steps.build-image.outputs.image }}
           wait-for-service-stability: true

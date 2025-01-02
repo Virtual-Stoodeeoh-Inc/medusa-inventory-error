@@ -17,5 +17,19 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/bundle",
     },
+    // {
+    //   resolve: "@medusajs/medusa/fulfillment",
+    //   options: {
+    //     providers: [
+    //       {
+    //         resolve: "./src/modules/shipstation-fulfillment",
+    //         id: "shipstation-fulfillment",
+    //         options: {
+    //           // provider options...
+    //         },
+    //       },
+    //     ],
+    //   },
+    // },
   ],
 });

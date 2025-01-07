@@ -26,6 +26,7 @@ export async function POST(
       first_name: billing.first_name,
       last_name: billing.last_name,
       phone: billing.phone,
+      company: billing.company,
     };
 
     const customer = await customerModuleService.createCustomers(customerData);

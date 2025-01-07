@@ -6,6 +6,8 @@ COPY . .
 
 RUN apt-get update && apt-get install -y python3 python3-pip python-is-python3
 
+RUN corepack enable && corepack prepare yarn@4.6.0 --activate
+
 RUN yarn global add @medusajs/medusa-cli
 
 RUN yarn

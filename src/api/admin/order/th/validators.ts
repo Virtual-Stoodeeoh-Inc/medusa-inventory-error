@@ -23,7 +23,6 @@ export const PostTHOrderSchema = z.object({
     province: z.string(),
     postal_code: z.string().max(6).min(5),
     country_code: z.string().max(2).min(2),
-    phone: z.string().max(20).min(2),
   }),
   items: z.array(
     z.object({

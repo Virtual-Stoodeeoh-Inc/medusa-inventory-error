@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// Todo: only allow specific skus per line items
 export const PostTHOrderSchema = z.object({
   customerEmail: z.string().email().max(255),
   billing: z.object({

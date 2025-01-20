@@ -16,9 +16,4 @@ module.exports = defineConfig({
   admin: {
     path: `/dashboard`,
   },
-  modules: [
-    {
-      resolve: "./src/modules/bundle",
-    },
-  ],
 });

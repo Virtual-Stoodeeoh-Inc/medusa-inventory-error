@@ -8,7 +8,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: tellihealth/medusajs
   ECS_SERVICE: tellihealth-medusajs
-  ECS_CLUSTER: tellhealth-cluster
+  ECS_CLUSTER: tellihealth-cluster
   ECS_TASK_DEFINITION: tellihealth-medusajs
   CONTAINER_NAME: tellihealth-medusajs
 

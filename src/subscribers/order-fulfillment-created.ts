@@ -36,6 +36,8 @@ export default async function orderFulfillmentCreatedHandler({
       await inventoryModuleService.deleteReservationItems(reservation.id);
     }
   }
+
+  // update reservation number
 }
 
 export const config: SubscriberConfig = {

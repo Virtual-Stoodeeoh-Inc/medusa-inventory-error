@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Todo: only allow specific skus per line items
 export const PostTHOrderSchema = z.object({
   customerEmail: z.string().email().max(255),
   billing: z.object({
@@ -26,10 +25,23 @@ export const PostTHOrderSchema = z.object({
     postal_code: z.string().max(6).min(5),
     country_code: z.string().max(2).min(2),
   }),
-  items: z.array(
-    z.object({
-      quantity: z.number(),
-      sku: z.string(),
-    })
-  ),
+  items: z
+    .array(
+      z.object({
+        quantity: z.number(),
+        sku: z.string(),
+      })
+    )
+    .superRefine((items, ctx) => {
+      const seen = new Set();
+      for (const item of items) {
+        if (seen.has(item.sku)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Duplicate SKU found: ${item.sku}`,
+          });
+        }
+        seen.add(item.sku);
+      }
+    }),
 });

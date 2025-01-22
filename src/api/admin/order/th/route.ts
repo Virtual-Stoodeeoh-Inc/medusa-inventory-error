@@ -40,7 +40,6 @@ export async function POST(
 
     const customerModuleService = req.scope.resolve(Modules.CUSTOMER);
     const cartModuleService = req.scope.resolve(Modules.CART);
-    const taxModuleService = req.scope.resolve(Modules.TAX);
 
     const { billing, shipping, items, customerEmail } = req.validatedBody;
 
@@ -101,14 +100,8 @@ export async function POST(
           unit_price: variant.calculated_price.calculated_amount,
         };
       }),
-      shipping_address: {
-        ...shipping,
-        province: "us-tx",
-      },
-      billing_address: {
-        ...billing,
-        province: "us-tx",
-      },
+      shipping_address: shipping,
+      billing_address: billing,
       sales_channel_id: process.env.TH_SALES_CHANNEL_ID,
       customer_id: customerId,
       email: customerEmail,
@@ -121,10 +114,9 @@ export async function POST(
     });
 
     await cartModuleService.addShippingMethods({
-      name: "Flat Rate",
+      name: "AccuHealth Free",
       cart_id: cart.id,
-      shipping_option_id: process.env.TH_SHIPPING_OPTION_ID,
-      amount: 12.99, // Calculate using Shipstation
+      amount: 0,
     });
 
     await createPaymentCollectionForCartWorkflow(req.scope).run({
@@ -135,35 +127,11 @@ export async function POST(
 
     const { data: updatedCarts } = (await query.graph({
       entity: "cart",
-      fields: [
-        "id",
-        "payment_collection.id",
-        "payment_collection.amount",
-        "items.*",
-      ],
+      fields: ["id", "payment_collection.id", "payment_collection.amount"],
       filters: {
         id: cart.id,
       },
     })) as { data: ExtendedCart[] };
-
-    const cartItems = updatedCarts[0].items.map((item) => {
-      return {
-        id: item.id,
-        quantity: item.quantity,
-        product_id: item.product_id,
-        unit_price: item.unit_price,
-      };
-    });
-
-    const taxLines = await taxModuleService.getTaxLines(cartItems, {
-      address: {
-        country_code: shipping.country_code,
-        province_code: "us-tx",
-        city: shipping.city,
-        address_1: shipping.address_1,
-        address_2: shipping.address_2,
-      },
-    });
 
     await createPaymentSessionsWorkflow(req.scope).run({
       input: {
@@ -180,8 +148,6 @@ export async function POST(
 
     res.json({
       order,
-      cartItems,
-      taxLines,
     });
   } catch (error) {
     res.status(500).json({

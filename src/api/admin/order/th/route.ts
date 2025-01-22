@@ -41,7 +41,14 @@ export async function POST(
     const customerModuleService = req.scope.resolve(Modules.CUSTOMER);
     const cartModuleService = req.scope.resolve(Modules.CART);
 
-    const { billing, shipping, items, customerEmail } = req.validatedBody;
+    const {
+      billing,
+      shipping,
+      items,
+      customerEmail,
+      region_id,
+      sales_channel_id,
+    } = req.validatedBody;
 
     let customerId = "";
     const customer = await customerModuleService.listCustomers({
@@ -73,7 +80,7 @@ export async function POST(
       },
       context: {
         calculated_price: QueryContext({
-          region_id: process.env.TH_REGION_ID,
+          region_id: region_id,
           currency_code: "usd",
         }),
       },
@@ -84,7 +91,7 @@ export async function POST(
     }
 
     const cart = await cartModuleService.createCarts({
-      region_id: process.env.TH_REGION_ID,
+      region_id: region_id,
       currency_code: "USD",
       items: items.map((item) => {
         const variant = variants.find((variant) => variant.sku === item.sku);
@@ -102,7 +109,7 @@ export async function POST(
       }),
       shipping_address: shipping,
       billing_address: billing,
-      sales_channel_id: process.env.TH_SALES_CHANNEL_ID,
+      sales_channel_id: sales_channel_id,
       customer_id: customerId,
       email: customerEmail,
     });

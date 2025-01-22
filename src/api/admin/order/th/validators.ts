@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const PostTHOrderSchema = z.object({
   customerEmail: z.string().email().max(255),
+  region_id: z.string().max(255),
+  sales_channel_id: z.string().max(255),
   billing: z.object({
     company: z.string().max(60).min(2),
     first_name: z.string().max(60).min(2),

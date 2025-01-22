@@ -10,8 +10,6 @@ export class ShipStationClient {
   }
 
   private async sendRequest(url: string, data?: RequestInit): Promise<any> {
-    console.log(data);
-
     return fetch(`https://ssapi.shipstation.com/${url}`, {
       ...data,
       headers: {

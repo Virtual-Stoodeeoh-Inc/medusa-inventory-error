@@ -7,6 +7,17 @@ module.exports = defineConfig({
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
     redisPrefix: "MEDUSA",
+    redisOptions: {
+      tls: process.env.REDIS_URL?.startsWith("rediss") ? {
+        rejectUnauthorized: false,
+        checkServerIdentity: (/*host, cert*/) => {
+          // skip certificate hostname validation
+          return undefined;
+        },
+      }: undefined,
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+    },
     databaseDriverOptions: {
       connection: {
         ssl: {

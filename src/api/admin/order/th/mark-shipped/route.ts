@@ -1,66 +1,87 @@
-// import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-// import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
-// import { createFulfillmentWorkflow } from "@medusajs/medusa/core-flows";
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
+import {
+  createOrderFulfillmentWorkflow,
+  createOrderShipmentWorkflow,
+} from "@medusajs/medusa/core-flows";
+import { z } from "zod";
+import { PostTHOrderMarkShippedSchema } from "./validators";
 
-// export async function POST(
-//   req: MedusaRequest,
-//   res: MedusaResponse
-// ): Promise<void> {
-//   try {
-//     const { order_id } = req.body;
+type PostTHOrderMarkShippedType = z.infer<typeof PostTHOrderMarkShippedSchema>;
 
-//     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
-//     const fulfillmentModuleService = req.scope.resolve(Modules.FULFILLMENT);
-//     const orderModuleService = req.scope.resolve(Modules.ORDER);
+export async function POST(
+  req: MedusaRequest<PostTHOrderMarkShippedType>,
+  res: MedusaResponse
+): Promise<void> {
+  try {
+    const { order_id, tracking_number, tracking_url, label_url, location_id } =
+      req.body;
 
-//     fulfillmentModuleService.createFulfillment;
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
 
-//     const { data: orders } = await query.graph({
-//       entity: "order",
-//       fields: ["*", "items.*", "shipping_address.*"],
-//       filters: {
-//         id: order_id,
-//       },
-//     });
+    const { data: orders } = await query.graph({
+      entity: "order",
+      fields: ["*", "items.*", "shipping_address.*"],
+      filters: {
+        id: order_id,
+      },
+    });
 
-//     const order = orders[0];
+    const order = orders[0];
 
-//     const items = order.items.map((item) => {
-//       return {
-//         id: item.id,
-//         title: item.variant_title,
-//         sku: item.variant_sku,
-//         barcode: item.variant_barcode || "",
-//         quantity: item.quantity,
-//         variant_id: item.variant_id,
-//         line_item_id: item.id,
-//       };
-//     });
+    const items = order.items.map((item) => {
+      return {
+        id: item.id,
+        title: item.variant_title,
+        sku: item.variant_sku,
+        barcode: item.variant_barcode || "",
+        quantity: item.quantity,
+        variant_id: item.variant_id,
+        line_item_id: item.id,
+      };
+    });
 
-//     const { result } = await createFulfillmentWorkflow(req.scope).run({
-//       input: {
-//         location_id: "sloc_01JDMXVBHNTXBEJX4344AQM32X",
-//         provider_id: "manual_manual",
-//         delivery_address: order.shipping_address,
-//         items,
-//         order: {
-//           id: order.id,
-//         },
-//       },
-//     });
+    await createOrderFulfillmentWorkflow(req.scope).run({
+      input: {
+        location_id,
+        items,
+        order_id: order.id,
+      },
+    });
 
-//     orderModuleService.registerFulfillment({
-//       order_id: order.id,
-//       items,
-//     });
+    const { data: updatedOrders } = await query.graph({
+      entity: "order",
+      fields: ["fulfillments.*"],
+      filters: {
+        id: order_id,
+      },
+    });
 
-//     res.json({
-//       order,
-//       items,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       error: error.message,
-//     });
-//   }
-// }
+    const updatedOrder = updatedOrders[0];
+
+    const { result: shipment } = await createOrderShipmentWorkflow(
+      req.scope
+    ).run({
+      input: {
+        order_id: updatedOrder.id,
+        fulfillment_id: updatedOrder.fulfillments[0].id,
+        items: updatedOrder.items,
+        labels: [
+          {
+            tracking_number,
+            tracking_url: tracking_url || "",
+            label_url: label_url || "",
+          },
+        ],
+      },
+    });
+
+    res.json({
+      shipment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+}

@@ -1,5 +1,6 @@
 import { SubscriberArgs, type SubscriberConfig } from "@medusajs/framework";
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils";
+import { deleteReservationsWorkflow } from "@medusajs/medusa/core-flows";
 
 export default async function orderFulfillmentCreatedHandler({
   event: { data },
@@ -32,12 +33,14 @@ export default async function orderFulfillmentCreatedHandler({
       line_item_id: item.id,
     });
 
-    for (const reservation of reservations) {
-      await inventoryModuleService.deleteReservationItems(reservation.id);
-    }
-  }
+    const reservationIds = reservations.map((reservation) => reservation.id);
 
-  // update reservation number
+    await deleteReservationsWorkflow(container).run({
+      input: {
+        ids: reservationIds,
+      },
+    });
+  }
 }
 
 export const config: SubscriberConfig = {
